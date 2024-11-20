@@ -13,6 +13,7 @@ from mm_utils.optims import *
 
 
 # nohup bash scripts/finetune_image_lora.sh > finetune_image_lora.out 2>&1 &
+# nohup bash scripts/finetune_video_lora_motion.sh > finetune_video_lora_motion.out 2>&1 &
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -23,7 +24,7 @@ def parse_args():
     parser.add_argument('--grad_accumulation_steps', type=int, default=5) # overall: world_size*bs*grad_accumulation_steps = 64
     parser.add_argument('--epoch', type=int, default=10)
     parser.add_argument('--lr', type=float, default=3e-5) 
-    parser.add_argument('--save_interval', type=int, default=1/10, help='save per save_interval epoch')
+    parser.add_argument('--save_interval', type=float, default=1/10, help='save per save_interval epoch')
     parser.add_argument('--use_lora', action='store_true')
 
     parser.add_argument('--stage', type=str, default='video', choices=['image', 'video'])
@@ -74,7 +75,7 @@ def plot_records(record_list, record_type):
 def train(args, model, train_dataset, rank):
 
     train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.bs, sampler=train_sampler, pin_memory=True, shuffle=False, drop_last=True, num_workers=4*dist.get_world_size())
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.bs, sampler=train_sampler, pin_memory=True, shuffle=False, drop_last=True, num_workers=4)
 
     optimizer = torch.optim.AdamW(filter(lambda p : p.requires_grad, model.parameters()), lr = args.lr)
     lr_schedule = LinearWarmupCosineLRScheduler(optimizer, max_epoch=args.max_T, min_lr=args.min_lr, init_lr=args.lr, warmup_steps=int(len(train_loader)*args.warm_up_epoches), warmup_start_lr=args.warmup_start_lr)
@@ -131,6 +132,7 @@ def train(args, model, train_dataset, rank):
                     torch.save(model.module.unet.state_dict(), f'./experiments/{args.stage}_epoch_{epoch+1}_iteration_{train_idx+1}.pth')
 
         if rank == 0:
+            print('epoch: ', epoch, ' train_loss: ', iteration_loss)
             torch.save(model.module.unet.state_dict(), f'./experiments/{args.stage}_epoch_{epoch+1}.pth')
 
 
@@ -159,7 +161,7 @@ def main_worker(args):
         model = SD_1_5_Video(
             dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora,
             n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = 'scaled_linear',)
-        model.unet.load_state_dict(torch.load("experiments/image_epoch_2.pth", map_location='cpu'), strict=False)
+        model.unet.load_state_dict(torch.load("experiments/image_epoch_1_lora.pth", map_location='cpu'), strict=False)
 
     model = torch.nn.parallel.DistributedDataParallel(model.cuda(rank), device_ids=[rank])
 
