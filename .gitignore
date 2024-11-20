@@ -1,4 +1,4 @@
-update.sh
+scripts/update.sh
 experiments/*.pth
 *.out
 

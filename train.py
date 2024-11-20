@@ -12,8 +12,7 @@ from mm_utils.utils import *
 from mm_utils.optims import *
 
 
-# CUDA_VISIBLE_DEVICES=4,5,6,7 nohup torchrun --standalone --nnodes=1 --nproc_per_node=4 --master_port=1234 train.py > train.out 2>&1 &
-# CUDA_VISIBLE_DEVICES=4,5,6,7 torchrun --standalone --nnodes=1 --nproc_per_node=4 --master_port=21312 train.py
+# nohup bash scripts/finetune_image_lora.sh > finetune_image_lora.out 2>&1 &
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -24,7 +23,8 @@ def parse_args():
     parser.add_argument('--grad_accumulation_steps', type=int, default=5) # overall: world_size*bs*grad_accumulation_steps = 64
     parser.add_argument('--epoch', type=int, default=10)
     parser.add_argument('--lr', type=float, default=3e-5) 
-    parser.add_argument('--save_interval', default=1/10, help='save per save_interval epoch')
+    parser.add_argument('--save_interval', type=int, default=1/10, help='save per save_interval epoch')
+    parser.add_argument('--use_lora', action='store_true')
 
     parser.add_argument('--stage', type=str, default='video', choices=['image', 'video'])
     parser.add_argument('--num_frames', type=int, default=16)
@@ -152,12 +152,12 @@ def main_worker(args):
     if args.stage == 'image':
         from models.stable_diffusion_1_5 import SD_1_5
         model = SD_1_5(
-            dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size,
+            dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora,
             n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = 'scaled_linear',)
     else:
         from models.stable_diffusion_1_5_motion import SD_1_5_Video
         model = SD_1_5_Video(
-            dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size,
+            dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora,
             n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = 'scaled_linear',)
         model.unet.load_state_dict(torch.load("experiments/image_epoch_2.pth", map_location='cpu'), strict=False)
 

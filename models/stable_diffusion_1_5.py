@@ -24,6 +24,7 @@ class SD_1_5(nn.Module):
                  beta_schedule = 'scaled_linear',
                  cfg_ratio = 0.1,
                  img_size = 512,
+                 use_lora = False,
                  ):
         super().__init__()
         self.dtype = dtype
@@ -42,6 +43,16 @@ class SD_1_5(nn.Module):
             param.requires_grad = False
         self.vae.eval()
         self.text_encoder.eval()
+
+        if use_lora:
+            from peft import LoraConfig
+            unet_lora_config = LoraConfig(
+                r=128,
+                lora_alpha=256,
+                init_lora_weights="gaussian",
+                target_modules=["to_k", "to_q", "to_v", "to_out.0"],
+            )
+            self.unet.add_adapter(unet_lora_config)
 
     @property
     def device(self):
@@ -93,8 +104,8 @@ class SD_1_5(nn.Module):
 
 
 # batch_size = 4
-# device = 'cuda:0'
-# model = SD_1_5(torch.bfloat16)
+# device = 'cpu'
+# model = SD_1_5(torch.float32, use_lora=True)
 # model.to(device)
 # print(get_parameter_number(model))
 
@@ -120,3 +131,6 @@ class SD_1_5(nn.Module):
 #         scaler.step(optimizer)
 #         scaler.update()  #准备着，看是否要增大scaler
 #     optimizer.zero_grad()         
+
+#     if step==5:
+#         break

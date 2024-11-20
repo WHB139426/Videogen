@@ -43,6 +43,7 @@ class SD_1_5_Video(nn.Module):
                  beta_schedule = 'linear',
                  cfg_ratio = 0.1,
                  img_size = 512,
+                 use_lora = False,
                  ):
         super().__init__()
         self.dtype = dtype
@@ -63,13 +64,31 @@ class SD_1_5_Video(nn.Module):
             param.requires_grad = False
         for name, param in self.text_encoder.named_parameters():
             param.requires_grad = False
+
+        self.vae.eval()
+        self.text_encoder.eval()
+
+        target_modules = []
         for name, param in self.unet.named_parameters():
-            if 'motion' in name:
+            if any(keyword in name for keyword in ['to_q', 'to_k', 'to_v', 'to_out.0']) and 'motion_modules' not in name:
+                target_modules.append(name.replace('.weight','').replace('.bias',''))
+        target_modules = list(set(target_modules))
+
+        if use_lora:
+            from peft import LoraConfig
+            unet_lora_config = LoraConfig(
+                r=128,
+                lora_alpha=256,
+                init_lora_weights="gaussian",
+                target_modules=target_modules,
+            )
+            self.unet.add_adapter(unet_lora_config)
+
+        for name, param in self.unet.named_parameters():
+            if 'motion_modules' in name:
                 param.requires_grad = True
             else:
                 param.requires_grad = False
-        self.vae.eval()
-        self.text_encoder.eval()
 
     @property
     def device(self):
@@ -131,8 +150,8 @@ class SD_1_5_Video(nn.Module):
 # batch_size = 2
 # num_frames = 16
 # img_size = 256
-# device = 'cuda:0'
-# model = SD_1_5_Video(torch.bfloat16)
+# device = 'cpu'
+# model = SD_1_5_Video(torch.float32, use_lora=True)
 # model.to(device)
 # print(get_parameter_number(model))
 
