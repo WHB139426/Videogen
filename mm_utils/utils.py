@@ -55,7 +55,7 @@ def image_transform(
     return Compose(transforms)
 
 def frame_transform(
-        image_size: int,
+        image_size: Union[int, Tuple[int, int]],
         rescale_factor: float = 1.0,
         mean: Optional[Tuple[float, ...]] = None,
         std: Optional[Tuple[float, ...]] = None,
@@ -68,17 +68,22 @@ def frame_transform(
     std = std or OPENAI_DATASET_STD
     if not isinstance(std, (list, tuple)):
         std = (std,) * 3
-    
-    if isinstance(image_size, (list, tuple)) and image_size[0] == image_size[1]:
-        # for square size, pass size as int so that Resize() uses aspect preserving shortest edge
-        image_size = image_size[0]
+
+    if isinstance(image_size, int):
+        resize_size = (image_size, image_size)
+        crop_size = (image_size, image_size)
+    elif isinstance(image_size, (list, tuple)) and len(image_size) == 2:
+        resize_size = (image_size[0], image_size[1])
+        crop_size = (image_size[0], image_size[1])
+    else:
+        raise ValueError("image_size must be an int or a tuple of two ints.")
 
     normalize = Normalize(mean=mean, std=std)
     
     transforms = [
         ToPILImage(),
-        Resize(image_size, interpolation=InterpolationMode.BICUBIC),
-        CenterCrop(image_size),
+        Resize(resize_size, interpolation=InterpolationMode.BICUBIC),
+        CenterCrop(resize_size),
         RandomHorizontalFlip() if random_flip else Lambda(lambda x: x),
     ]
     transforms.extend([
