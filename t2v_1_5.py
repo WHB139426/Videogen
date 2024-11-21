@@ -47,8 +47,8 @@ texts = [
 
 # Define parameters
 model_path = "/data3/haibo/weights/stable-diffusion-v1-5" 
-height = 512 # default height of Stable Diffusion  
-width = 512 # default width of Stable Diffusion  
+height = 256 # default height of Stable Diffusion  
+width = 256 # default width of Stable Diffusion  
 frame_num = 16
 fps = 4
 num_inference_steps = 50 # Number of denoising steps  
@@ -58,7 +58,7 @@ do_classifier_free_guidance = True
 device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
 ckpt = 'experiments/video_epoch_1_iteration_8032_lora.pth'
-lora_alpha = 0 # [0, 1] to control lora effect
+lora_alpha = 1 # [0, 1] to control lora effect
 
 # Load models and scheduler
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule='scaled_linear')
