@@ -132,7 +132,7 @@ def train(args, model, train_dataset, rank):
                     torch.save(model.module.unet.state_dict(), f'./experiments/{args.stage}_epoch_{epoch+1}_iteration_{train_idx+1}.pth')
 
         if rank == 0:
-            print('epoch: ', epoch, ' train_loss: ', iteration_loss)
+            print('epoch: ', epoch+1, ' train_loss: ', sum(iteration_loss_list)/len(iteration_loss_list))
             torch.save(model.module.unet.state_dict(), f'./experiments/{args.stage}_epoch_{epoch+1}.pth')
 
 

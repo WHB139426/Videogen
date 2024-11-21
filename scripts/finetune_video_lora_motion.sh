@@ -1,6 +1,6 @@
 CUDA_VISIBLE_DEVICES=4,5,6,7 torchrun --standalone --nnodes=1 --nproc_per_node=4 --master_port=21312 train.py \
-    --bs 3 \
-    --grad_accumulation_steps 6 \
+    --bs 2 \
+    --grad_accumulation_steps 8 \
     --epoch 10 \
     --lr 1e-4 \
     --save_interval 0.1 \

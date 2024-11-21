@@ -27,27 +27,44 @@ def init_seeds(seed=42, cuda_deterministic=True):
         cudnn.deterministic = False
         cudnn.benchmark = True
 
-init_seeds(random.randint(0,1e9))
+init_seeds(42)
 
 # Define parameters
 model_path = "/home/haibo/weights/stable-diffusion-v1-5" 
-height = 512 # default height of Stable Diffusion  
-width = 512 # default width of Stable Diffusion  
+height = 256 # default height of Stable Diffusion  
+width = 256 # default width of Stable Diffusion  
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 7.5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
-text = "a car is running on the road.mp4"
-device = "cuda:0"  
-dtype = torch.float32
-ckpt = None
+text = "photo of coastline, rocks, storm weather, wind, waves, lightning, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3"
+device = "cuda:4"  
+dtype = torch.bfloat16
+ckpt = "/home/haibo/workspace/Videogen/experiments/image_epoch_2_lora.pth"
+lora_zero = False
 
 # Load models and scheduler
 vae = AutoencoderKL.from_pretrained(model_path, subfolder="vae", torch_dtype=dtype).to(device)  
 tokenizer = CLIPTokenizer.from_pretrained(model_path, subfolder="tokenizer")  
 text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder", torch_dtype=dtype).to(device)  
 unet = UNet2DConditionModel.from_pretrained(model_path, subfolder="unet", torch_dtype=dtype).to(device)  
+if ckpt is not None and 'lora' in ckpt:
+    from peft import LoraConfig
+    unet_lora_config = LoraConfig(
+        r=128,
+        lora_alpha=256,
+        init_lora_weights="gaussian",
+        target_modules=["to_k", "to_q", "to_v", "to_out.0"],
+    )
+    unet.add_adapter(unet_lora_config)
 if ckpt is not None:
     unet.load_state_dict(torch.load(ckpt, map_location='cpu'))
+
+if lora_zero:
+    for name, param in unet.named_parameters():
+        if "lora" in name:
+            with torch.no_grad():  # 确保不记录到计算图中
+                param.zero_()  # 将参数置为 0
+
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler")
 
 print(get_parameter_number(vae))

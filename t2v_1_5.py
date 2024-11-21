@@ -29,29 +29,49 @@ def init_seeds(seed=42, cuda_deterministic=True):
         cudnn.deterministic = False
         cudnn.benchmark = True
 
-init_seeds(random.randint(0,1e9))
+init_seeds(42)
 
 # Define parameters
 model_path = "/home/haibo/weights/stable-diffusion-v1-5" 
-height = 256 # default height of Stable Diffusion  
-width = 256 # default width of Stable Diffusion  
+height = 512 # default height of Stable Diffusion  
+width = 512 # default width of Stable Diffusion  
 frame_num = 16
 fps = 4
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 7.5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
-text = "an elephant is drinking water near a river"
-device = "cpu"  
+text = "car running on the road, professional shot, 4k, highly detailed"
+device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/sd_1_5_video_iteration_5354.pth'
+ckpt = 'experiments/video_epoch_2_iteration_20080.pth'
+lora_zero = True
 
 # Load models and scheduler
 vae = AutoencoderKL.from_pretrained(model_path, subfolder="vae", torch_dtype=dtype).to(device)  
 tokenizer = CLIPTokenizer.from_pretrained(model_path, subfolder="tokenizer")  
 text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder", torch_dtype=dtype).to(device)  
 unet = UNet3DConditionModel(sample_size=width // 8, cross_attention_dim=768, **unet_additional_kwargs) 
+if ckpt is not None and 'lora' in ckpt:
+    from peft import LoraConfig
+    target_modules = []
+    for name, param in unet.named_parameters():
+        if any(keyword in name for keyword in ['to_q', 'to_k', 'to_v', 'to_out.0']) and 'motion_modules' not in name:
+            target_modules.append(name.replace('.weight','').replace('.bias',''))
+    target_modules = list(set(target_modules))
+    unet_lora_config = LoraConfig(
+        r=128,
+        lora_alpha=256,
+        init_lora_weights="gaussian",
+        target_modules=target_modules,
+    )
+    unet.add_adapter(unet_lora_config)
 if ckpt is not None:
     unet.load_state_dict(torch.load(ckpt, map_location='cpu'))
+if lora_zero:
+    for name, param in unet.named_parameters():
+        if "lora" in name:
+            with torch.no_grad():
+                param.zero_()
 unet = unet.to(device) 
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule='scaled_linear')
 
