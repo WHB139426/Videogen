@@ -30,7 +30,7 @@ def init_seeds(seed=42, cuda_deterministic=True):
         cudnn.benchmark = True
 
 seed = random.randint(0, 1e9)
-init_seeds(seed)
+init_seeds(42)
 print('seed: ', seed)
 
 texts = [
@@ -57,10 +57,11 @@ do_classifier_free_guidance = True
 
 device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/video_epoch_2_iteration_20080.pth'
-lora_zero = True
+ckpt = 'experiments/video_epoch_1_iteration_8032_lora.pth'
+lora_alpha = 0 # [0, 1] to control lora effect
 
 # Load models and scheduler
+scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule='scaled_linear')
 vae = AutoencoderKL.from_pretrained(model_path, subfolder="vae", torch_dtype=dtype).to(device)  
 tokenizer = CLIPTokenizer.from_pretrained(model_path, subfolder="tokenizer")  
 text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder", torch_dtype=dtype).to(device)  
@@ -74,20 +75,14 @@ if ckpt is not None and 'lora' in ckpt:
     target_modules = list(set(target_modules))
     unet_lora_config = LoraConfig(
         r=128,
-        lora_alpha=256,
+        lora_alpha=256*lora_alpha,
         init_lora_weights="gaussian",
         target_modules=target_modules,
     )
     unet.add_adapter(unet_lora_config)
 if ckpt is not None:
     unet.load_state_dict(torch.load(ckpt, map_location='cpu'))
-if lora_zero:
-    for name, param in unet.named_parameters():
-        if "lora" in name:
-            with torch.no_grad():
-                param.zero_()
 unet = unet.to(device) 
-scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule='scaled_linear')
 
 print(get_parameter_number(vae))
 print(get_parameter_number(text_encoder))
