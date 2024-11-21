@@ -151,9 +151,10 @@ class SD_1_5_Video(nn.Module):
 # num_frames = 16
 # img_size = 256
 # device = 'cpu'
-# model = SD_1_5_Video(torch.float32, use_lora=True)
+# model = SD_1_5_Video(torch.float32, use_lora=False)
 # model.to(device)
 # print(get_parameter_number(model))
+# print(model.unet.down_blocks[0])
 
 # from datasets.mix_pretrain import MixPretrain
 # from torch.utils.data import DataLoader
