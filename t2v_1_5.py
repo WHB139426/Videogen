@@ -57,7 +57,7 @@ do_classifier_free_guidance = True
 
 device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/video_epoch_1_iteration_12048_lora.pth'
+ckpt = 'experiments/video_epoch_1_iteration_16064_lora.pth'
 lora_alpha = 0 # [0, 1] to control lora effect
 
 # Load models and scheduler

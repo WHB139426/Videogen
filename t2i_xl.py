@@ -38,13 +38,13 @@ init_seeds(random.randint(0,1e9))
 
 
 model_path = "/data3/haibo/weights/stable-diffusion-xl-base-1.0" 
-height = 1024 # default height of Stable Diffusion  
-width = 1024 # default width of Stable Diffusion  
+height = 640 # default height of Stable Diffusion  
+width = 1144 # default width of Stable Diffusion  
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
 text = "rocket in fire"
-device = "cuda:0"  
+device = "cuda:4"  
 dtype = torch.bfloat16
 ckpt = None
 
