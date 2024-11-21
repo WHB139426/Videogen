@@ -3,14 +3,14 @@ import torch
 from diffusers import StableVideoDiffusionPipeline
 from diffusers.utils import load_image, export_to_video
 
-device = 'cuda:0'
+device = 'cuda:4'
 
 pipe = StableVideoDiffusionPipeline.from_pretrained(
     "/data3/haibo/weights/stable-video-diffusion-img2vid-xt-1-1", torch_dtype=torch.bfloat16
 ).to(device)
 
 # Load the conditioning image
-image = load_image("https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/diffusers/svd/rocket.png")
+image = load_image("/data3/haibo/rocket.png")
 image = image.resize((1024, 576))
 
 generator = torch.manual_seed(42)
