@@ -17,7 +17,7 @@ from mm_utils.utils import *
 class SD_XL(nn.Module):
     def __init__(self, 
                  dtype=torch.float32,
-                 model_path="/home/haibo/weights/stable-diffusion-xl-base-1.0",
+                 model_path="/data3/haibo/weights/stable-diffusion-xl-base-1.0",
                  n_steps = 1000,
                  min_beta = 0.00085,
                  max_beta = 0.012,

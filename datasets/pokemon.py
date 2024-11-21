@@ -10,7 +10,7 @@ from mm_utils.utils import *
 class Pokemon(Dataset):
     def __init__(
         self,
-        data_path = "/home/haibo/data/train-00000-of-00001-566cc9b19d7203f8.parquet",
+        data_path = "/data3/haibo/data/train-00000-of-00001-566cc9b19d7203f8.parquet",
         img_size = 512,
     ):
         self.data = read_parquet(data_path)

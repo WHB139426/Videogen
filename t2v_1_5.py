@@ -29,10 +29,12 @@ def init_seeds(seed=42, cuda_deterministic=True):
         cudnn.deterministic = False
         cudnn.benchmark = True
 
-init_seeds(42)
+seed = random.randint(0, 1e9)
+init_seeds(seed)
+print('seed: ', seed)
 
 # Define parameters
-model_path = "/home/haibo/weights/stable-diffusion-v1-5" 
+model_path = "/data3/haibo/weights/stable-diffusion-v1-5" 
 height = 512 # default height of Stable Diffusion  
 width = 512 # default width of Stable Diffusion  
 frame_num = 16

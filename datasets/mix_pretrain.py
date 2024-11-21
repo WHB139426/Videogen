@@ -19,8 +19,8 @@ from mm_utils.video_utils import read_frames_decord, read_frames_av
 class MixPretrain(Dataset):
     def __init__(
         self,
-        anno_path = "/home/haibo/data/mix_pretrain/mix_pretrain.json",
-        video_path = "/home/haibo/data",
+        anno_path = "/data3/haibo/data/mix_pretrain/mix_pretrain.json",
+        video_path = "/data3/haibo/data",
         num_frames = 16,
         sample='middle',
         img_size = 512,

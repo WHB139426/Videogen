@@ -148,20 +148,20 @@ def main_worker(args):
     train_dataset = MixPretrain(
         img_size=args.img_size, 
         num_frames = 1 if args.stage == 'image' else args.num_frames,        
-        anno_path = "/home/haibo/data/mix_pretrain/mix_pretrain.json",
-        video_path = "/home/haibo/data",)
+        anno_path = "/data3/haibo/data/mix_pretrain/mix_pretrain.json",
+        video_path = "/data3/haibo/data",)
 
     if args.stage == 'image':
         from models.stable_diffusion_1_5 import SD_1_5
         model = SD_1_5(
-            dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora,
+            dtype=args.dtype, model_path="/data3/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora,
             n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = 'scaled_linear',)
     else:
         from models.stable_diffusion_1_5_motion import SD_1_5_Video
         model = SD_1_5_Video(
-            dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora,
+            dtype=args.dtype, model_path="/data3/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora,
             n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = 'scaled_linear',)
-        model.unet.load_state_dict(torch.load("experiments/image_epoch_1_lora.pth", map_location='cpu'), strict=False)
+        model.unet.load_state_dict(torch.load("experiments/image_epoch_5_lora.pth", map_location='cpu'), strict=False)
 
     model = torch.nn.parallel.DistributedDataParallel(model.cuda(rank), device_ids=[rank])
 

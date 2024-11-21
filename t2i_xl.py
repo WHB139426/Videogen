@@ -16,7 +16,7 @@ from models.autoencoder_kl import AutoencoderKL
 from models.unet_2d_condition import UNet2DConditionModel
 
 # from diffusers import StableDiffusionXLPipeline
-# pipe = StableDiffusionXLPipeline.from_pretrained("/home/haibo/weights/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16, use_safetensors=True)
+# pipe = StableDiffusionXLPipeline.from_pretrained("/data3/haibo/weights/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16, use_safetensors=True)
 # pipe.to("cuda:0")
 # prompt = "A cat holding a sign that says hello world"
 # images = pipe(prompt=prompt).images[0]
@@ -37,7 +37,7 @@ def init_seeds(seed=42, cuda_deterministic=True):
 init_seeds(random.randint(0,1e9))
 
 
-model_path = "/home/haibo/weights/stable-diffusion-xl-base-1.0" 
+model_path = "/data3/haibo/weights/stable-diffusion-xl-base-1.0" 
 height = 1024 # default height of Stable Diffusion  
 width = 1024 # default width of Stable Diffusion  
 num_inference_steps = 50 # Number of denoising steps  

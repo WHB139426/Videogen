@@ -18,11 +18,11 @@ from mm_utils.utils import *
 
 
 # from models.unet_2d_condition import UNet2DConditionModel
-# unet = UNet2DConditionModel.from_pretrained("/home/haibo/weights/stable-diffusion-v1-5", subfolder="unet", torch_dtype=torch.float32)
-# # torch.save(unet.state_dict(), '/home/haibo/weights/stable-diffusion-v1-5/unet/unet.pth')
-# ckpt = torch.load('/home/haibo/weights/stable-diffusion-v1-5/unet/unet.pth', map_location='cpu')
+# unet = UNet2DConditionModel.from_pretrained("/data3/haibo/weights/stable-diffusion-v1-5", subfolder="unet", torch_dtype=torch.float32)
+# # torch.save(unet.state_dict(), '/data3/haibo/weights/stable-diffusion-v1-5/unet/unet.pth')
+# ckpt = torch.load('/data3/haibo/weights/stable-diffusion-v1-5/unet/unet.pth', map_location='cpu')
 # unet_3d = UNet3DConditionModel(sample_size=64, cross_attention_dim=768, **unet_additional_kwargs)
-# load_status = unet_3d.load_state_dict(torch.load('/home/haibo/weights/stable-diffusion-v1-5/unet/unet.pth', map_location='cpu'), strict=False)
+# load_status = unet_3d.load_state_dict(torch.load('/data3/haibo/weights/stable-diffusion-v1-5/unet/unet.pth', map_location='cpu'), strict=False)
 # missing_keys = load_status.missing_keys
 # unexpected_keys = load_status.unexpected_keys
 # print("Missing keys (not loaded into unet_3d):")
@@ -36,7 +36,7 @@ from mm_utils.utils import *
 class SD_1_5_Video(nn.Module):
     def __init__(self, 
                  dtype=torch.float32,
-                 model_path="/home/haibo/weights/stable-diffusion-v1-5",
+                 model_path="/data3/haibo/weights/stable-diffusion-v1-5",
                  n_steps = 1000,
                  min_beta = 0.00085,
                  max_beta = 0.012,

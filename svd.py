@@ -6,7 +6,7 @@ from diffusers.utils import load_image, export_to_video
 device = 'cuda:0'
 
 pipe = StableVideoDiffusionPipeline.from_pretrained(
-    "/home/haibo/weights/stable-video-diffusion-img2vid-xt-1-1", torch_dtype=torch.bfloat16
+    "/data3/haibo/weights/stable-video-diffusion-img2vid-xt-1-1", torch_dtype=torch.bfloat16
 ).to(device)
 
 # Load the conditioning image

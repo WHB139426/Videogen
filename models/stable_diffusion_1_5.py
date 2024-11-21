@@ -17,7 +17,7 @@ from mm_utils.utils import *
 class SD_1_5(nn.Module):
     def __init__(self, 
                  dtype=torch.float32,
-                 model_path="/home/haibo/weights/stable-diffusion-v1-5",
+                 model_path="/data3/haibo/weights/stable-diffusion-v1-5",
                  n_steps = 1000,
                  min_beta = 0.00085,
                  max_beta = 0.012,

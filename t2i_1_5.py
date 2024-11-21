@@ -27,19 +27,21 @@ def init_seeds(seed=42, cuda_deterministic=True):
         cudnn.deterministic = False
         cudnn.benchmark = True
 
-init_seeds(42)
+seed = random.randint(0, 1e9)
+init_seeds(seed)
+print('seed: ', seed)
 
 # Define parameters
-model_path = "/home/haibo/weights/stable-diffusion-v1-5" 
+model_path = "/data3/haibo/weights/stable-diffusion-v1-5" 
 height = 256 # default height of Stable Diffusion  
 width = 256 # default width of Stable Diffusion  
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 7.5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
-text = "photo of coastline, rocks, storm weather, wind, waves, lightning, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3"
+text = "close up photo of a rabbit, forest, haze, halation, bloom, dramatic atmosphere, centred, rule of thirds, 200mm 1.4f macro shot"
 device = "cuda:4"  
 dtype = torch.bfloat16
-ckpt = "/home/haibo/workspace/Videogen/experiments/image_epoch_2_lora.pth"
+ckpt = "experiments/image_epoch_5_lora.pth"
 lora_zero = False
 
 # Load models and scheduler
