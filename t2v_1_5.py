@@ -38,11 +38,11 @@ texts = [
     "car running on the road, professional shot, 4k, highly detailed",
     "close up photo of a rabbit, forest, haze, halation, bloom, dramatic atmosphere, centred, rule of thirds, 200mm 1.4f macro shot",
     "photo of coastline, rocks, storm weather, wind, waves, lightning, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3",
-    "Robot dancing in times square",
     "b&w photo of 42 y.o man in black clothes, bald, face, half body, body, high detailed skin, skin pores, coastline, overcast weather, wind, waves, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3",
     "Snow rocky mountains peaks canyon. Snow blanketed rocky mountains surround and shadow deep canyons",
     "A drone view of celebration with Christma tree and fireworks, starry sky - background",
     "Pacific coast, carmel by the sea ocean and waves",
+    "Robot dancing in times square",
 ]
 
 # Define parameters
@@ -57,8 +57,8 @@ do_classifier_free_guidance = True
 
 device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/video_epoch_1_iteration_16064_lora.pth'
-lora_alpha = 0 # [0, 1] to control lora effect
+ckpt = 'experiments/video_epoch_3_iteration_4016_lora.pth'
+lora_alpha = 0.6 # [0, 1] to control lora effect
 
 # Load models and scheduler
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule='scaled_linear')
@@ -145,5 +145,5 @@ for text in texts:
 
 
     frames = [frame for frame in image] 
-    clip = ImageSequenceClip(frames, fps=fps)
+    clip = ImageSequenceClip(frames, fps=7)
     clip.write_videofile(f"samples/{text}.mp4", codec='libx264')

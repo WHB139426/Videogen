@@ -24,10 +24,12 @@ class ShareGPT4Video(Dataset):
         num_frames = 16,
         sample='middle',
         img_size = 512,
+        stride=-1,
     ):
         self.video_path = video_path
         self.num_frames = num_frames
         self.sample = sample
+        self.stride = stride
 
         self.data = load_jsonl(anno_path)
 
@@ -57,6 +59,7 @@ class ShareGPT4Video(Dataset):
             video_path = video_path,
             num_frames = self.num_frames,
             sample = self.sample,
+            stride = self.stride,
         )
 
         video_pixel_values = []

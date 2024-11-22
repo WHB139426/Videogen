@@ -59,7 +59,7 @@ decord.bridge.set_bridge("torch")
 
 def read_frames_decord(
         video_path, num_frames, sample='rand', fix_start=None, 
-        max_num_frames=-1, client=None, clip=None
+        max_num_frames=-1, client=None, clip=None, stride=-1,
     ):
 
 
@@ -78,10 +78,16 @@ def read_frames_decord(
         vlen = int(duration * fps)
         start_index = int(start * fps)
 
-    frame_indices = get_frame_indices(
-        num_frames, vlen, sample=sample, fix_start=fix_start,
-        input_fps=fps, max_num_frames=max_num_frames
-    )
+    if stride==-1 or num_frames*stride >= vlen:
+        frame_indices = get_frame_indices(
+            num_frames, vlen, sample=sample, fix_start=fix_start,
+            input_fps=fps, max_num_frames=max_num_frames
+        )
+    else:
+        segment_length = num_frames * stride
+        start_idx = random.randint(0, vlen - segment_length)
+        frame_indices = [start_idx + i * stride for i in range(num_frames)]
+
     if clip:
         frame_indices = [f + start_index for f in frame_indices]
 
