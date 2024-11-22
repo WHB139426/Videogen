@@ -56,8 +56,8 @@ do_classifier_free_guidance = True
 
 device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/video_epoch_1_iteration_24096_lora.pth'
-lora_alpha = 0 # [0, 1] to control lora effect
+ckpt = 'experiments/video_epoch_1_iteration_32128_lora.pth'
+lora_alpha = 1 # [0, 1] to control lora effect
 
 # Load models and scheduler
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule='scaled_linear')

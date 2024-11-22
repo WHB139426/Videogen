@@ -45,8 +45,8 @@ texts = [
 
 # Define parameters
 model_path = "/data3/haibo/weights/stable-diffusion-v1-5" 
-height = 256 # default height of Stable Diffusion  
-width = 256 # default width of Stable Diffusion  
+height = 512 # default height of Stable Diffusion  
+width = 512 # default width of Stable Diffusion  
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 7.5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
@@ -65,7 +65,7 @@ text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder
 # unet = UNet2DConditionModel.from_pretrained(model_path, subfolder="unet", torch_dtype=dtype)  
 
 from models.unet_condition import UNetConditionModel
-unet = UNetConditionModel(use_3d=False, sample_size=64, cross_attention_dim=768).to(dtype).to(device) 
+unet = UNetConditionModel(use_3d=False, sample_size=height//8, cross_attention_dim=768).to(dtype).to(device) 
 unet.load_state_dict(torch.load(os.path.join(model_path, 'unet/unet.pth'), map_location='cpu'))
 unet.to(dtype)
 
