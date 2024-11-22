@@ -14,7 +14,6 @@ sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 from mm_utils.utils import *
 from models.modeling_clip import CLIPTextModel
 from models.autoencoder_kl import AutoencoderKL
-from models.unet_3d_condition import UNet3DConditionModel, unet_additional_kwargs
 
 
 def init_seeds(seed=42, cuda_deterministic=True):
@@ -50,22 +49,29 @@ model_path = "/data3/haibo/weights/stable-diffusion-v1-5"
 height = 512 # default height of Stable Diffusion  
 width = 512 # default width of Stable Diffusion  
 frame_num = 16
-fps = 4
+fps = 7
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 7.5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
 
 device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/video_epoch_3_iteration_4016_lora.pth'
-lora_alpha = 0.6 # [0, 1] to control lora effect
+ckpt = 'experiments/video_epoch_1_iteration_24096_lora.pth'
+lora_alpha = 0 # [0, 1] to control lora effect
 
 # Load models and scheduler
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule='scaled_linear')
 vae = AutoencoderKL.from_pretrained(model_path, subfolder="vae", torch_dtype=dtype).to(device)  
 tokenizer = CLIPTokenizer.from_pretrained(model_path, subfolder="tokenizer")  
 text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder", torch_dtype=dtype).to(device)  
-unet = UNet3DConditionModel(sample_size=width // 8, cross_attention_dim=768, **unet_additional_kwargs) 
+
+# from models.unet_3d_condition import UNet3DConditionModel, unet_additional_kwargs
+# unet = UNet3DConditionModel(sample_size=width // 8, cross_attention_dim=768, **unet_additional_kwargs) 
+from models.unet_condition import UNetConditionModel, unet_additional_kwargs
+unet = UNetConditionModel(use_3d=True, sample_size=64, cross_attention_dim=768, **unet_additional_kwargs).to(dtype).to(device) 
+unet.load_state_dict(torch.load(os.path.join(model_path, 'unet/unet.pth'), map_location='cpu'), strict=False)
+unet.to(dtype)
+
 if ckpt is not None and 'lora' in ckpt:
     from peft import LoraConfig
     target_modules = []
@@ -80,6 +86,7 @@ if ckpt is not None and 'lora' in ckpt:
         target_modules=target_modules,
     )
     unet.add_adapter(unet_lora_config)
+
 if ckpt is not None:
     unet.load_state_dict(torch.load(ckpt, map_location='cpu'))
 unet = unet.to(device) 
@@ -145,5 +152,5 @@ for text in texts:
 
 
     frames = [frame for frame in image] 
-    clip = ImageSequenceClip(frames, fps=7)
+    clip = ImageSequenceClip(frames, fps=fps)
     clip.write_videofile(f"samples/{text}.mp4", codec='libx264')

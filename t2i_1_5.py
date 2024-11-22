@@ -12,7 +12,6 @@ sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 from mm_utils.utils import *
 from models.modeling_clip import CLIPTextModel
 from models.autoencoder_kl import AutoencoderKL
-from models.unet_2d_condition import UNet2DConditionModel
 
 
 def init_seeds(seed=42, cuda_deterministic=True):
@@ -46,22 +45,30 @@ texts = [
 
 # Define parameters
 model_path = "/data3/haibo/weights/stable-diffusion-v1-5" 
-height = 512 # default height of Stable Diffusion  
-width = 512 # default width of Stable Diffusion  
+height = 256 # default height of Stable Diffusion  
+width = 256 # default width of Stable Diffusion  
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 7.5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
 device = "cuda:4"  
 dtype = torch.bfloat16
 ckpt = "experiments/image_epoch_5_lora.pth"
-lora_alpha = 0.3 # [0, 1] to control lora effect
+lora_alpha = 1 # [0, 1] to control lora effect
 
 # Load models and scheduler
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler")
 vae = AutoencoderKL.from_pretrained(model_path, subfolder="vae", torch_dtype=dtype).to(device)  
 tokenizer = CLIPTokenizer.from_pretrained(model_path, subfolder="tokenizer")  
 text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder", torch_dtype=dtype).to(device)  
-unet = UNet2DConditionModel.from_pretrained(model_path, subfolder="unet", torch_dtype=dtype)  
+
+# from models.unet_2d_condition import UNet2DConditionModel
+# unet = UNet2DConditionModel.from_pretrained(model_path, subfolder="unet", torch_dtype=dtype)  
+
+from models.unet_condition import UNetConditionModel
+unet = UNetConditionModel(use_3d=False, sample_size=64, cross_attention_dim=768).to(dtype).to(device) 
+unet.load_state_dict(torch.load(os.path.join(model_path, 'unet/unet.pth'), map_location='cpu'))
+unet.to(dtype)
+
 if ckpt is not None and 'lora' in ckpt:
     from peft import LoraConfig
     unet_lora_config = LoraConfig(

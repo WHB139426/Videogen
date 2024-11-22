@@ -153,17 +153,16 @@ def main_worker(args):
         anno_path = "/data3/haibo/data/mix_pretrain/mix_pretrain.json",
         video_path = "/data3/haibo/data",)
 
-    if args.stage == 'image':
-        from models.stable_diffusion_1_5 import SD_1_5
+    from models.stable_diffusion_1_5 import SD_1_5
+        if args.stage == 'image':
+            use_3d = False
+        elif args.stage == 'video':
+            use_3d = True
         model = SD_1_5(
-            dtype=args.dtype, model_path="/data3/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora,
+            dtype=args.dtype, model_path="/data3/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora, use_3d=use_3d,
             n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = 'scaled_linear',)
-    else:
-        from models.stable_diffusion_1_5_motion import SD_1_5_Video
-        model = SD_1_5_Video(
-            dtype=args.dtype, model_path="/data3/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora,
-            n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = 'scaled_linear',)
-        model.unet.load_state_dict(torch.load("experiments/video_epoch_3_iteration_8032_lora_no_stride.pth", map_location='cpu'), strict=False)
+        if use_3d:
+            model.unet.load_state_dict(torch.load("experiments/video_epoch_3_iteration_8032_lora_no_stride.pth", map_location='cpu'), strict=False)
 
     model = torch.nn.parallel.DistributedDataParallel(model.cuda(rank), device_ids=[rank])
 
