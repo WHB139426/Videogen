@@ -33,6 +33,7 @@ init_seeds(42)
 print('seed: ', seed)
 
 texts = [
+    "A space rocket with trails of smoke behind it launching into space from the desert, 4k, high resolution",
     "A horse galloping through van Gogh's 'Starry Night'",
     "car running on the road, professional shot, 4k, highly detailed",
     "close up photo of a rabbit, forest, haze, halation, bloom, dramatic atmosphere, centred, rule of thirds, 200mm 1.4f macro shot",
@@ -45,7 +46,7 @@ texts = [
 ]
 
 # Define parameters
-model_path = "/data3/haibo/weights/stable-diffusion-v1-5" 
+model_path = "/data3/haibo/weights/stable-diffusion-v1-5"
 height = 512 # default height of Stable Diffusion  
 width = 512 # default width of Stable Diffusion  
 frame_num = 16
@@ -56,8 +57,14 @@ do_classifier_free_guidance = True
 
 device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/video_epoch_1_iteration_32128_lora.pth'
-lora_alpha = 1 # [0, 1] to control lora effect
+ckpt = 'experiments/video_epoch_2_iteration_36144_lora_stride_8.pth'
+lora_alpha = 0 # [0, 1] to control lora effect
+load_style = True
+style_path = [
+    '/data3/haibo/workspace/AnimateDiff/Realistic_Vision_V5.1_noVAE', 
+    '/data3/haibo/workspace/AnimateDiff/toonyou_beta6', 
+    '/data3/haibo/workspace/AnimateDiff/epiCRealism',
+    ][0]
 
 # Load models and scheduler
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule='scaled_linear')
@@ -71,6 +78,7 @@ from models.unet_condition import UNetConditionModel, unet_additional_kwargs
 unet = UNetConditionModel(use_3d=True, sample_size=64, cross_attention_dim=768, **unet_additional_kwargs).to(dtype).to(device) 
 unet.load_state_dict(torch.load(os.path.join(model_path, 'unet/unet.pth'), map_location='cpu'), strict=False)
 unet.to(dtype)
+
 
 if ckpt is not None and 'lora' in ckpt:
     from peft import LoraConfig
@@ -89,6 +97,10 @@ if ckpt is not None and 'lora' in ckpt:
 
 if ckpt is not None:
     unet.load_state_dict(torch.load(ckpt, map_location='cpu'))
+
+if load_style:
+    unet.load_state_dict(torch.load(os.path.join(style_path, 'unet/unet.pth'), map_location='cpu'), strict=False)
+
 unet = unet.to(device) 
 
 print(get_parameter_number(vae))

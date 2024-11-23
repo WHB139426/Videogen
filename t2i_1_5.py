@@ -31,6 +31,7 @@ init_seeds(42)
 print('seed: ', seed)
 
 texts = [
+    "A space rocket with trails of smoke behind it launching into space from the desert, 4k, high resolution",
     "A horse galloping through van Gogh's 'Starry Night'",
     "car running on the road, professional shot, 4k, highly detailed",
     "close up photo of a rabbit, forest, haze, halation, bloom, dramatic atmosphere, centred, rule of thirds, 200mm 1.4f macro shot",
