@@ -33,6 +33,9 @@ init_seeds(42)
 print('seed: ', seed)
 
 texts = [
+    "a golden labrador, warm vibrant colours, natural lighting, dappled lighting, diffused lighting, absurdres, highres,k, uhd, hdr, rtx, unreal, octane render, RAW photo, photorealistic, global illumination, subsurface scattering",
+    "A forbidden castle high up in the mountains, pixel art, intricate details2, hdr, intricate details, hyperdetailed5, natural skin texture, hyperrealism, soft light, sharp, game art, key visual, surreal",
+    "best quality, masterpiece, 1girl, looking at viewer, blurry background, upper body, contemporary, dress",
     "A space rocket with trails of smoke behind it launching into space from the desert, 4k, high resolution",
     "A horse galloping through van Gogh's 'Starry Night'",
     "car running on the road, professional shot, 4k, highly detailed",
@@ -41,7 +44,6 @@ texts = [
     "b&w photo of 42 y.o man in black clothes, bald, face, half body, body, high detailed skin, skin pores, coastline, overcast weather, wind, waves, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3",
     "Snow rocky mountains peaks canyon. Snow blanketed rocky mountains surround and shadow deep canyons",
     "A drone view of celebration with Christma tree and fireworks, starry sky - background",
-    "Pacific coast, carmel by the sea ocean and waves",
     "Robot dancing in times square",
 ]
 
@@ -57,13 +59,14 @@ do_classifier_free_guidance = True
 
 device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/video_epoch_2_iteration_36144_lora_stride_8.pth'
+ckpt = 'experiments/video_epoch_3_iteration_28112_lora_stride_8.pth'
 lora_alpha = 0 # [0, 1] to control lora effect
 load_style = True
 style_path = [
     '/data3/haibo/workspace/AnimateDiff/Realistic_Vision_V5.1_noVAE', 
     '/data3/haibo/workspace/AnimateDiff/toonyou_beta6', 
     '/data3/haibo/workspace/AnimateDiff/epiCRealism',
+    '/data3/haibo/workspace/AnimateDiff/ResidentCNZCartoon3D',
     ][0]
 
 # Load models and scheduler
