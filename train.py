@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument('--n_steps', type=int, default=1000)
     parser.add_argument('--min_beta', type=float, default=0.00085)
     parser.add_argument('--max_beta', type=float, default=0.012)
+    parser.add_argument('--beta_schedule', type=str, default='scaled_linear', choices=['scaled_linear', 'linear'])
     parser.add_argument('--cfg_ratio', type=float, default=0.1)
 
     parser.add_argument('--use_schedule', type=bool, default=False)
@@ -160,9 +161,9 @@ def main_worker(args):
             use_3d = True
         model = SD_1_5(
             dtype=args.dtype, model_path="/data3/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora, use_3d=use_3d,
-            n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = 'scaled_linear',)
-        if use_3d:
-            model.unet.load_state_dict(torch.load("experiments/video_epoch_3_iteration_8032_lora_no_stride.pth", map_location='cpu'), strict=False)
+            n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = args.beta_schedule,)
+        # if use_3d:
+        #     model.unet.load_state_dict(torch.load("experiments/video_epoch_3_iteration_8032_lora_no_stride.pth", map_location='cpu'), strict=False)
 
     model = torch.nn.parallel.DistributedDataParallel(model.cuda(rank), device_ids=[rank])
 

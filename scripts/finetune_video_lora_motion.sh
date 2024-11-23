@@ -11,5 +11,6 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nnodes=1 --nproc_per_node=4
     --n_steps 1000 \
     --min_beta 0.00085 \
     --max_beta 0.012 \
+    --beta_schedule linear \
     --cfg_ratio 0.1 \
     --use_lora \

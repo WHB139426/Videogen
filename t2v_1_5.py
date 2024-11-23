@@ -56,10 +56,11 @@ fps = 7
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 7.5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
+beta_schedule='scaled_linear' #  'scaled_linear', 'linear'
 
 device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/video_epoch_3_iteration_28112_lora_stride_8.pth'
+ckpt = 'experiments/video_epoch_3_lora_stride_8.pth'
 lora_alpha = 0 # [0, 1] to control lora effect
 load_style = True
 style_path = [
@@ -70,7 +71,7 @@ style_path = [
     ][0]
 
 # Load models and scheduler
-scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule='scaled_linear')
+scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule=beta_schedule)
 vae = AutoencoderKL.from_pretrained(model_path, subfolder="vae", torch_dtype=dtype).to(device)  
 tokenizer = CLIPTokenizer.from_pretrained(model_path, subfolder="tokenizer")  
 text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder", torch_dtype=dtype).to(device)  
