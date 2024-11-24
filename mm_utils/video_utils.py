@@ -79,7 +79,7 @@ def read_frames_decord(
         start_index = int(start * fps)
 
     if stride!=-1:
-        stride = int(stride * fps/30)
+        stride = max(int(stride * fps/30), 1)
 
     if stride==-1 or num_frames*stride >= vlen:
         frame_indices = get_frame_indices(

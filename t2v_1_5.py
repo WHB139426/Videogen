@@ -15,7 +15,8 @@ from mm_utils.utils import *
 from models.modeling_clip import CLIPTextModel
 from models.autoencoder_kl import AutoencoderKL
 
-
+# ckpt = torch.load('/data3/haibo/workspace/Videogen/experiments/image_epoch_1.pth', map_location='cpu')
+# print(ckpt)
 # ckpt = torch.load('/data3/haibo/workspace/Videogen/experiments/video_epoch_5_iteration_16064_motion_modules_stride_8.pth', map_location='cpu')
 # lora_ckpt = {k: v for k, v in ckpt.items() if 'motion' in k}
 # torch.save(lora_ckpt, '/data3/haibo/workspace/Videogen/experiments/video_epoch_5_iteration_16064_motion_modules_stride_8.pth')
@@ -63,7 +64,7 @@ beta_schedule=['scaled_linear', 'linear'][1]
 
 model_path = "/data3/haibo/weights/stable-diffusion-v1-5"
 lora_path = "experiments/image_epoch_5_lora.pth"
-motion_modules_path = "/data3/haibo/workspace/Videogen/experiments/video_epoch_5_iteration_16064_motion_modules_stride_8.pth"
+motion_modules_path = "experiments/video_epoch_5_iteration_16064_motion_modules_stride_8.pth"
 style_path = [
     '/data3/haibo/workspace/AnimateDiff/Realistic_Vision_V5.1_noVAE', 
     '/data3/haibo/workspace/AnimateDiff/toonyou_beta6', 
@@ -71,6 +72,7 @@ style_path = [
     '/data3/haibo/workspace/AnimateDiff/ResidentCNZCartoon3D',
     ][0]
 lora_alpha = 0 # [0, 1] to control lora effect
+lora_rank = 32
 load_style = True
 
 device = "cuda:4"  
@@ -98,8 +100,8 @@ if lora_alpha > 0:
             target_modules.append(name.replace('.weight','').replace('.bias',''))
     target_modules = list(set(target_modules))
     unet_lora_config = LoraConfig(
-        r=128,
-        lora_alpha=256*lora_alpha,
+        r=lora_rank,
+        lora_alpha=lora_rank*lora_alpha,
         init_lora_weights="gaussian",
         target_modules=target_modules,
     )

@@ -80,7 +80,7 @@ class MixPretrain(Dataset):
                 "dataset_names": dataset_name,
             }
 
-# dataset = MixPretrain(num_frames=16, img_size=256, stride=8)
+# dataset = MixPretrain(num_frames=16, img_size=256, stride=4)
 # for i in range(1000):
 #     entry = random.choice(dataset)
 #     print(entry['video_ids'], entry['dataset_names'])

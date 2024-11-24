@@ -1,5 +1,5 @@
 CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nnodes=1 --nproc_per_node=4 --master_port=21312 train.py \
-    --bs 16 \
+    --bs 64 \
     --grad_accumulation_steps 1 \
     --epoch 10 \
     --lr 1e-4 \
@@ -12,3 +12,4 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nnodes=1 --nproc_per_node=4
     --beta_schedule scaled_linear \
     --cfg_ratio 0.1 \
     --use_lora \
+    --lora_rank 32 \

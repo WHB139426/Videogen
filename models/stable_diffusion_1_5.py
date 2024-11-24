@@ -26,6 +26,7 @@ class SD_1_5(nn.Module):
                  cfg_ratio = 0.1,
                  img_size = 512,
                  use_lora = False,
+                 lora_rank = 32,
                  use_3d = False,
                  ):
         super().__init__()
@@ -59,8 +60,8 @@ class SD_1_5(nn.Module):
             target_modules = list(set(target_modules))
 
             unet_lora_config = LoraConfig(
-                r=128,
-                lora_alpha=256,
+                r=lora_rank,
+                lora_alpha=lora_rank,
                 init_lora_weights="gaussian",
                 target_modules=target_modules,
             )
@@ -134,10 +135,10 @@ class SD_1_5(nn.Module):
         return loss
 
 
-# batch_size = 4
+# batch_size = 8
 # device = 'cuda:4'
 # use_3d = True
-# use_lora=False
+# use_lora=True
 
 # model = SD_1_5(dtype=torch.float32 if device=='cpu' else torch.bfloat16, use_lora=use_lora, use_3d=use_3d)
 # model.to(device)
@@ -148,7 +149,7 @@ class SD_1_5(nn.Module):
 # dataset = MixPretrain(
 #     img_size=256, 
 #     num_frames = 16 if use_3d else 1, 
-#     stride = 8 if use_3d else -1,       
+#     stride = 4 if use_3d else -1,       
 #     anno_path = "/data3/haibo/data/mix_pretrain/mix_pretrain.json",
 #     video_path = "/data3/haibo/data",)
 # data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, drop_last=False, num_workers=16)
