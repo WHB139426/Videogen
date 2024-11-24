@@ -130,12 +130,20 @@ def train(args, model, train_dataset, rank):
 
             if (train_idx+1) % int(args.save_interval*steps_per_epoch*args.grad_accumulation_steps) == 0:
                 if rank == 0 and args.stage == 'video':
+                    trainable_state_dict = {
+                            k: v for k, v in model.module.unet.state_dict().items()
+                            if v.requires_grad
+                        }
                     print("save an interval ckpt!")
-                    torch.save(model.module.unet.state_dict(), f'./experiments/{args.stage}_epoch_{epoch+1}_iteration_{train_idx+1}.pth')
+                    torch.save(trainable_state_dict, f'./experiments/{args.stage}_epoch_{epoch+1}_iteration_{train_idx+1}.pth')
 
         if rank == 0:
+            trainable_state_dict = {
+                k: v for k, v in model.module.unet.state_dict().items()
+                if v.requires_grad
+            }
             print('epoch: ', epoch+1, ' train_loss: ', sum(iteration_loss_list)/len(iteration_loss_list))
-            torch.save(model.module.unet.state_dict(), f'./experiments/{args.stage}_epoch_{epoch+1}.pth')
+            torch.save(trainable_state_dict, f'./experiments/{args.stage}_epoch_{epoch+1}.pth')
 
 
 def main_worker(args):

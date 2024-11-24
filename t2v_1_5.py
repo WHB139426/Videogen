@@ -60,7 +60,7 @@ beta_schedule='scaled_linear' #  'scaled_linear', 'linear'
 
 device = "cuda:4"  
 dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/video_epoch_3_lora_stride_8.pth'
+ckpt = 'experiments/video_epoch_4_lora_stride_8.pth'
 lora_alpha = 0 # [0, 1] to control lora effect
 load_style = True
 style_path = [
