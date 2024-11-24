@@ -13,7 +13,7 @@ from mm_utils.optims import *
 
 
 # nohup bash scripts/finetune_image_lora.sh > finetune_image_lora.out 2>&1 &
-# nohup bash scripts/finetune_video_lora_motion.sh > finetune_video_lora_motion.out 2>&1 &
+# nohup bash scripts/finetune_video_motion.sh > finetune_video_motion.out 2>&1 & 3033651
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -163,15 +163,15 @@ def main_worker(args):
         video_path = "/data3/haibo/data",)
 
     from models.stable_diffusion_1_5 import SD_1_5
-        if args.stage == 'image':
-            use_3d = False
-        elif args.stage == 'video':
-            use_3d = True
-        model = SD_1_5(
-            dtype=args.dtype, model_path="/data3/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora, use_3d=use_3d,
-            n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = args.beta_schedule,)
-        # if use_3d:
-        #     model.unet.load_state_dict(torch.load("experiments/video_epoch_3_iteration_8032_lora_no_stride.pth", map_location='cpu'), strict=False)
+    if args.stage == 'image':
+        use_3d = False
+    elif args.stage == 'video':
+        use_3d = True
+    model = SD_1_5(
+        dtype=args.dtype, model_path="/data3/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora, use_3d=use_3d,
+        n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = args.beta_schedule,)
+    if use_3d and args.use_lora:
+        model.unet.load_state_dict(torch.load("experiments/image_epoch_5_lora.pth", map_location='cpu'), strict=False)
 
     model = torch.nn.parallel.DistributedDataParallel(model.cuda(rank), device_ids=[rank])
 

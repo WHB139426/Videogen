@@ -16,6 +16,10 @@ from models.modeling_clip import CLIPTextModel
 from models.autoencoder_kl import AutoencoderKL
 
 
+# ckpt = torch.load('/data3/haibo/workspace/Videogen/experiments/video_epoch_5_iteration_16064_motion_modules_stride_8.pth', map_location='cpu')
+# lora_ckpt = {k: v for k, v in ckpt.items() if 'motion' in k}
+# torch.save(lora_ckpt, '/data3/haibo/workspace/Videogen/experiments/video_epoch_5_iteration_16064_motion_modules_stride_8.pth')
+
 def init_seeds(seed=42, cuda_deterministic=True):
     random.seed(seed)
     np.random.seed(seed)
@@ -48,7 +52,6 @@ texts = [
 ]
 
 # Define parameters
-model_path = "/data3/haibo/weights/stable-diffusion-v1-5"
 height = 512 # default height of Stable Diffusion  
 width = 512 # default width of Stable Diffusion  
 frame_num = 16
@@ -56,35 +59,38 @@ fps = 7
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 7.5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
-beta_schedule='scaled_linear' #  'scaled_linear', 'linear'
+beta_schedule=['scaled_linear', 'linear'][1]
 
-device = "cuda:4"  
-dtype = torch.float32 if device else torch.bfloat16
-ckpt = 'experiments/video_epoch_4_lora_stride_8.pth'
-lora_alpha = 0 # [0, 1] to control lora effect
-load_style = True
+model_path = "/data3/haibo/weights/stable-diffusion-v1-5"
+lora_path = "experiments/image_epoch_5_lora.pth"
+motion_modules_path = "/data3/haibo/workspace/Videogen/experiments/video_epoch_5_iteration_16064_motion_modules_stride_8.pth"
 style_path = [
     '/data3/haibo/workspace/AnimateDiff/Realistic_Vision_V5.1_noVAE', 
     '/data3/haibo/workspace/AnimateDiff/toonyou_beta6', 
     '/data3/haibo/workspace/AnimateDiff/epiCRealism',
     '/data3/haibo/workspace/AnimateDiff/ResidentCNZCartoon3D',
     ][0]
+lora_alpha = 0 # [0, 1] to control lora effect
+load_style = True
+
+device = "cuda:4"  
+dtype = torch.float32 if device else torch.bfloat16
 
 # Load models and scheduler
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler", beta_schedule=beta_schedule)
 vae = AutoencoderKL.from_pretrained(model_path, subfolder="vae", torch_dtype=dtype).to(device)  
 tokenizer = CLIPTokenizer.from_pretrained(model_path, subfolder="tokenizer")  
 text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder", torch_dtype=dtype).to(device)  
-
-# from models.unet_3d_condition import UNet3DConditionModel, unet_additional_kwargs
-# unet = UNet3DConditionModel(sample_size=width // 8, cross_attention_dim=768, **unet_additional_kwargs) 
+ 
 from models.unet_condition import UNetConditionModel, unet_additional_kwargs
 unet = UNetConditionModel(use_3d=True, sample_size=64, cross_attention_dim=768, **unet_additional_kwargs).to(dtype).to(device) 
 unet.load_state_dict(torch.load(os.path.join(model_path, 'unet/unet.pth'), map_location='cpu'), strict=False)
 unet.to(dtype)
 
+if motion_modules_path!=None:
+    unet.load_state_dict(torch.load(os.path.join(motion_modules_path), map_location='cpu'), strict=False)
 
-if ckpt is not None and 'lora' in ckpt:
+if lora_alpha > 0:
     from peft import LoraConfig
     target_modules = []
     for name, param in unet.named_parameters():
@@ -98,9 +104,7 @@ if ckpt is not None and 'lora' in ckpt:
         target_modules=target_modules,
     )
     unet.add_adapter(unet_lora_config)
-
-if ckpt is not None:
-    unet.load_state_dict(torch.load(ckpt, map_location='cpu'))
+    unet.load_state_dict(torch.load(os.path.join(lora_path), map_location='cpu'), strict=False)
 
 if load_style:
     unet.load_state_dict(torch.load(os.path.join(style_path, 'unet/unet.pth'), map_location='cpu'), strict=False)
