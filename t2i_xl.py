@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 from mm_utils.utils import *
 from models.modeling_clip import CLIPTextModel, CLIPTextModelWithProjection
 from models.autoencoder_kl import AutoencoderKL
-from models.unet_2d_condition import UNet2DConditionModel
+from diffusers import UNet2DConditionModel
 
 # from diffusers import StableDiffusionXLPipeline
 # pipe = StableDiffusionXLPipeline.from_pretrained("/home/haibo/weights/stable-diffusion-xl-base-1.0", torch_dtype=torch.bfloat16, use_safetensors=True)
@@ -38,8 +38,8 @@ init_seeds(random.randint(0,1e9))
 
 
 model_path = "/home/haibo/weights/stable-diffusion-xl-base-1.0" 
-height = 640 # default height of Stable Diffusion  
-width = 1144 # default width of Stable Diffusion  
+height = 1024 # default height of Stable Diffusion  
+width = 1024 # default width of Stable Diffusion  
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
@@ -56,7 +56,7 @@ text_encoder = CLIPTextModel.from_pretrained(model_path, subfolder="text_encoder
 text_encoder_2 = CLIPTextModelWithProjection.from_pretrained(model_path, subfolder="text_encoder_2", torch_dtype=dtype).to(device)    
 tokenizers = [tokenizer, tokenizer_2]
 text_encoders = ([text_encoder, text_encoder_2])
-unet = UNet2DConditionModel.from_pretrained(  model_path, subfolder="unet", torch_dtype=dtype).to(device)    
+unet = UNet2DConditionModel.from_pretrained(model_path, subfolder="unet", torch_dtype=dtype).to(device)    
 if ckpt is not None:
     unet.load_state_dict(torch.load(ckpt, map_location='cpu'))
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler")

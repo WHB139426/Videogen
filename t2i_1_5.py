@@ -51,10 +51,10 @@ width = 512 # default width of Stable Diffusion
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 7.5 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
-device = "cuda:4"  
+device = "cuda:0"  
 dtype = torch.bfloat16
 ckpt = None
-lora_alpha = 1 # [0, 1] to control lora effect
+lora_alpha = 0 # [0, 1] to control lora effect
 
 # Load models and scheduler
 scheduler = DDIMScheduler.from_pretrained(model_path, subfolder="scheduler")
@@ -73,8 +73,8 @@ unet.to(dtype)
 if ckpt is not None and 'lora' in ckpt:
     from peft import LoraConfig
     unet_lora_config = LoraConfig(
-        r=128,
-        lora_alpha=256*lora_alpha,
+        r=32,
+        lora_alpha=32*lora_alpha,
         init_lora_weights="gaussian",
         target_modules=["to_k", "to_q", "to_v", "to_out.0"],
     )
