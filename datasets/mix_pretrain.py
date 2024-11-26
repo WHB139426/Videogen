@@ -24,9 +24,11 @@ class MixPretrain(Dataset):
         num_frames = 16,
         sample='middle',
         img_size = 512,
+        stride=-1,
     ):
         self.video_path = video_path
         self.num_frames = num_frames
+        self.stride = stride
         self.sample = sample
 
         self.data = load_json(anno_path)
@@ -60,8 +62,9 @@ class MixPretrain(Dataset):
             video_path = video_path,
             num_frames = self.num_frames,
             sample = self.sample,
+            stride = self.stride,
         )
- 
+
         video_pixel_values = []
         for i in range(pixel_values.shape[0]): 
             video_pixel_values.append(self.image_processor(pixel_values[i]))
@@ -77,8 +80,8 @@ class MixPretrain(Dataset):
                 "dataset_names": dataset_name,
             }
 
-# dataset = MixPretrain(num_frames=1, img_size=256)
-# for i in range(10):
+# dataset = MixPretrain(num_frames=16, img_size=256, stride=4)
+# for i in range(1000):
 #     entry = random.choice(dataset)
 #     print(entry['video_ids'], entry['dataset_names'])
 #     print("prompts: ",        entry['prompts'])

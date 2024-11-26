@@ -1,5 +1,6 @@
 scripts/update.sh
 experiments/*.pth
+samples/*
 *.out
 
 # 忽略所有 __pycache__ 目录
