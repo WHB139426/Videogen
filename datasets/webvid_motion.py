@@ -16,11 +16,11 @@ sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 from mm_utils.utils import *
 from mm_utils.video_utils import read_frames_decord, read_frames_av
 
-class ShareGPT4Video(Dataset):
+class Webvid_motion(Dataset):
     def __init__(
         self,
-        anno_path = '/home/haibo/data/sharegpt4video/sharegpt4video_40k.jsonl',
-        video_path = "/home/haibo/data/sharegpt4video/videos",
+        anno_path = "/home/haibo/data/webvid10m_motion/webvid10m_motion.csv",
+        video_path = "/home/haibo/data/webvid10m_motion/videos",
         num_frames = 16,
         sample='middle',
         img_size = 512,
@@ -28,39 +28,49 @@ class ShareGPT4Video(Dataset):
     ):
         self.video_path = video_path
         self.num_frames = num_frames
-        self.sample = sample
         self.stride = stride
+        self.sample = sample
 
-        self.data = load_jsonl(anno_path)
-
+        self.data = load_csv(anno_path)
         self.image_processor = frame_transform(image_size=img_size, mean=0.5, std=0.5)
 
         self.video_ids = []
         self.video_files = []
-        self.text_inputs = []
+        self.prompts = []
 
         for item in self.data:
-            self.video_files.append(item['video_path'])
-            self.video_ids.append(item['video_id'])
-            self.text_inputs.append(item['captions'][-1]['content'])
+            video_id = str(item['videoid'])
+            page_dir = str(item['page_dir'])
+            self.video_files.append(f'{page_dir}/{video_id}.mp4')
+            self.video_ids.append(f'{page_dir}-{video_id}')
+            self.prompts.append(item['name'])
 
     def __len__(self):
         return len(self.video_ids)
-
+    
     def __getitem__(self, index):
         """return the input ids, attention masks and target ids"""
         video_id = str(self.video_ids[index])
-        text_input = self.text_inputs[index]
+        prompt = self.prompts[index]
         video_file = str(self.video_files[index])
-
         video_path = os.path.join(self.video_path, video_file)
-
-        pixel_values, frame_indices, fps, total_frame_num, duration = read_frames_decord(
-            video_path = video_path,
-            num_frames = self.num_frames,
-            sample = self.sample,
-            stride = self.stride,
-        )
+        
+        try:
+            pixel_values, frame_indices, fps, total_frame_num, duration = read_frames_decord(
+                video_path = video_path,
+                num_frames = self.num_frames,
+                sample = self.sample,
+                stride = self.stride,
+            )
+        except Exception:
+            print(f"read_frames_decord ERROR: {video_id}, {video_file}, {prompt}")
+            pixel_values, frame_indices, fps, total_frame_num, duration = read_frames_decord(
+                video_path = '/home/haibo/data/msrvttqa/videos/video0.mp4',
+                num_frames = self.num_frames,
+                sample = self.sample,
+                stride = self.stride,
+            )
+            prompt = "A man silently narrates his experience driving an audi"
 
         video_pixel_values = []
         for i in range(pixel_values.shape[0]): 
@@ -72,28 +82,15 @@ class ShareGPT4Video(Dataset):
 
         return {
                 "video_ids": video_id,
-                "prompts": text_input,
+                "prompts": prompt,
                 "pixel_values": video_pixel_values,
             }
 
-
-# dataset = ShareGPT4Video(num_frames=16, img_size=(320, 576))
+# dataset = Webvid_motion(num_frames=16, img_size=256, stride=8)
 # for i in range(10):
 #     entry = random.choice(dataset)
 #     print(entry['video_ids'])
 #     print("prompts: ",        entry['prompts'])
 #     print("pixel_values: ",   entry['pixel_values'].shape)
 #     print()
-
-#     # from moviepy.editor import ImageSequenceClip
-#     # image = entry['pixel_values']
-#     # image = (image / 2 + 0.5).clamp(0, 1).squeeze()  
-#     # image = (image.permute(0, 2, 3, 1) * 255).to(torch.uint8).cpu().numpy()  
-#     # image = image.round().astype("uint8")  # [frame_num, 256, 256, 3]
-#     # prompts = entry['prompts']
-#     # video_id = entry['video_ids']
-#     # frames = [frame for frame in image] 
-#     # clip = ImageSequenceClip(frames, fps=4)
-#     # clip.write_videofile(f"{video_id}.mp4", codec='libx264')
-
 # print(len(dataset))

@@ -15,6 +15,7 @@ from mm_utils.optims import *
 
 # nohup bash scripts/finetune_image_lora.sh > finetune_image_lora.out 2>&1 &
 # nohup bash scripts/finetune_video_motion.sh > finetune_video_motion.out 2>&1 & 443084
+# nohup bash scripts/finetune_video_expand.sh > finetune_video_expand.out 2>&1 & 443084
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -30,7 +31,7 @@ def parse_args():
     parser.add_argument('--lora_path', type=str, default="experiments/image_epoch_5_lora.pth")
     parser.add_argument('--lora_rank', type=int, default=32)
 
-    parser.add_argument('--stage', type=str, default='video', choices=['image', 'video'])
+    parser.add_argument('--stage', type=str, default='video', choices=['image', 'video', 'expand'])
     parser.add_argument('--num_frames', type=int, default=16)
     parser.add_argument('--stride', type=int, default=-1)
     parser.add_argument('--img_size', type=int, default=256)
@@ -157,24 +158,40 @@ def main_worker(args):
 
     init_seeds(args.seed + rank)
 
-    from datasets.mix_pretrain import MixPretrain
-    train_dataset = MixPretrain(
+    # from datasets.mix_pretrain import MixPretrain
+    # train_dataset = MixPretrain(
+    #     img_size=args.img_size, 
+    #     num_frames = 1 if args.stage == 'image' else args.num_frames, 
+    #     stride = args.stride,       
+    #     anno_path = "/home/haibo/data/mix_pretrain/mix_pretrain.json",
+    #     video_path = "/home/haibo/data",)
+
+    from datasets.webvid_motion import Webvid_motion
+    train_dataset = Webvid_motion(
         img_size=args.img_size, 
         num_frames = 1 if args.stage == 'image' else args.num_frames, 
         stride = args.stride,       
-        anno_path = "/home/haibo/data/mix_pretrain/mix_pretrain.json",
-        video_path = "/home/haibo/data",)
+        anno_path = "/home/haibo/data/webvid10m_motion/webvid10m_motion.csv",
+        video_path = "/home/haibo/data/webvid10m_motion/videos",
+        )
+    
 
-    from models.stable_diffusion_1_5 import SD_1_5
-    if args.stage == 'image':
-        use_3d = False
-    elif args.stage == 'video':
-        use_3d = True
-    model = SD_1_5(
-        dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora, lora_rank=args.lora_rank, use_3d=use_3d,
-        n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = args.beta_schedule,)
-    if use_3d and args.use_lora:
-        model.unet.load_state_dict(torch.load(args.lora_path, map_location='cpu'), strict=False)
+    if args.stage in ['image', 'video']:
+        from models.stable_diffusion_1_5 import SD_1_5
+        if args.stage == 'image':
+            use_3d = False
+        elif args.stage == 'video':
+            use_3d = True
+        model = SD_1_5(
+            dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora, lora_rank=args.lora_rank, use_3d=use_3d,
+            n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = args.beta_schedule,)
+        if use_3d and args.use_lora:
+            model.unet.load_state_dict(torch.load(args.lora_path, map_location='cpu'), strict=False)
+    elif args.stage == 'expand':
+        from models_expand.stable_diffusion_1_5 import SD_1_5
+        model = SD_1_5(
+            dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=False, lora_rank=args.lora_rank, use_3d=False,
+            n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = args.beta_schedule, expand_conv_in=True)
 
     model = torch.nn.parallel.DistributedDataParallel(model.cuda(rank), device_ids=[rank])
 
