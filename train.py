@@ -15,7 +15,7 @@ from mm_utils.optims import *
 
 # nohup bash scripts/finetune_image_lora.sh > finetune_image_lora.out 2>&1 &
 # nohup bash scripts/finetune_video_motion.sh > finetune_video_motion.out 2>&1 & 443084
-# nohup bash scripts/finetune_video_expand.sh > finetune_video_expand.out 2>&1 & 443084
+# nohup bash scripts/finetune_video_expand.sh > finetune_video_expand.out 2>&1 & 1018907
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -81,7 +81,7 @@ def plot_records(record_list, record_type):
 def train(args, model, train_dataset, rank):
 
     train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.bs, sampler=train_sampler, pin_memory=True, shuffle=False, drop_last=True, num_workers=8)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.bs, sampler=train_sampler, pin_memory=True, shuffle=False, drop_last=True, num_workers=4)
 
     optimizer = torch.optim.AdamW(filter(lambda p : p.requires_grad, model.parameters()), lr = args.lr)
     lr_schedule = LinearWarmupCosineLRScheduler(optimizer, max_epoch=args.max_T, min_lr=args.min_lr, init_lr=args.lr, warmup_steps=int(len(train_loader)*args.warm_up_epoches), warmup_start_lr=args.warmup_start_lr)
@@ -132,14 +132,14 @@ def train(args, model, train_dataset, rank):
                 if rank == 0:
                     plot_records(iteration_loss_list, f'{args.stage}_iteration_loss')
 
-            # if (train_idx+1) % int(args.save_interval*steps_per_epoch*args.grad_accumulation_steps) == 0:
-            #     if rank == 0:
-            #         trainable_state_dict = {
-            #             name: param for name, param in model.module.unet.named_parameters()
-            #             if param.requires_grad
-            #         }
-            #         print("save an interval ckpt!")
-            #         torch.save(trainable_state_dict, f'./experiments/{args.stage}_epoch_{epoch+1}_iteration_{train_idx+1}_unet.pth')
+            if (train_idx+1) % int(args.save_interval*steps_per_epoch*args.grad_accumulation_steps) == 0:
+                if rank == 0:
+                    trainable_state_dict = {
+                        name: param for name, param in model.module.unet.named_parameters()
+                        if param.requires_grad
+                    }
+                    print("save an interval ckpt!")
+                    torch.save(trainable_state_dict, f'./experiments/{args.stage}_epoch_{epoch+1}_iteration_{train_idx+1}.pth')
 
         if rank == 0:
             trainable_state_dict = {
@@ -147,7 +147,7 @@ def train(args, model, train_dataset, rank):
                 if param.requires_grad
             }
             print('epoch: ', epoch+1, ' train_loss: ', sum(iteration_loss_list)/len(iteration_loss_list))
-            torch.save(trainable_state_dict, f'./experiments/{args.stage}_epoch_{epoch+1}_unet.pth')
+            torch.save(trainable_state_dict, f'./experiments/{args.stage}_epoch_{epoch+1}.pth')
 
 
 def main_worker(args):
