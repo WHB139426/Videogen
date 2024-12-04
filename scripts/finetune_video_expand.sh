@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nnodes=1 --nproc_per_node=4 --master_port=21312 train.py \
+CUDA_VISIBLE_DEVICES=0,1,2 torchrun --standalone --nnodes=1 --nproc_per_node=3 --master_port=21312 train.py \
     --bs 3 \
     --grad_accumulation_steps 4 \
     --epoch 10 \

@@ -29,11 +29,31 @@ init_seeds(42)
 print('seed: ', seed)
 
 texts = [
+    "A drone view of celebration with Christma tree and fireworks, starry sky - background",
+    "A horse galloping through van Gogh's 'Starry Night'",
+    "A space rocket with trails of smoke behind it launching into space from the desert, 4k, high resolution",
     "A train going down the train track",
+    "b&w photo of 42 y.o man in black clothes, bald, face, half body, body, high detailed skin, skin pores, coastline, overcast weather, wind, waves, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3",
+    "car running on the road, professional shot, 4k, highly detailed",
+    "close up photo of a rabbit, forest, haze, halation, bloom, dramatic atmosphere, centred, rule of thirds, 200mm 1.4f macro shot",
+    "Pacific coast, carmel by the sea ocean and waves",
+    "photo of coastline, rocks, storm weather, wind, waves, lightning, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3",
+    "Robot dancing in times square",
+    "Snow rocky mountains peaks canyon. Snow blanketed rocky mountains surround and shadow deep canyons",
 ]
 
 images = [
+    'samples/A drone view of celebration with Christma tree and fireworks, starry sky - background.png',
+    "samples/A horse galloping through van Gogh's 'Starry Night'.png",
+    'samples/A space rocket with trails of smoke behind it launching into space from the desert, 4k, high resolution.png',
     'samples/A train going down the train track.png',
+    'samples/b&w photo of 42 y.o man in black clothes, bald, face, half body, body, high detailed skin, skin pores, coastline, overcast weather, wind, waves, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3.png',
+    'samples/car running on the road, professional shot, 4k, highly detailed.png',
+    'samples/close up photo of a rabbit, forest, haze, halation, bloom, dramatic atmosphere, centred, rule of thirds, 200mm 1.4f macro shot.png',
+    'samples/Pacific coast, carmel by the sea ocean and waves.png',
+    'samples/photo of coastline, rocks, storm weather, wind, waves, lightning, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3.png',
+    'samples/Robot dancing in times square.png',
+    'samples/Snow rocky mountains peaks canyon. Snow blanketed rocky mountains surround and shadow deep canyons.png',
 ]
 
 # Define parameters
@@ -45,9 +65,9 @@ fps = 4
 num_inference_steps = 50 # Number of denoising steps  
 guidance_scale = 7 # Scale for classifier-free guidance  
 do_classifier_free_guidance = True
-device = "cuda:6"  
+device = "cuda:3"  
 dtype = torch.float32 if device=='cpu' else torch.bfloat16
-ckpt = None
+ckpt = 'experiments/expand_epoch_1_iteration_85708.pth'
 stage = 'expand'
 expand_conv_in = True
 
@@ -82,6 +102,13 @@ for step, (image, text) in enumerate(zip(images, texts)):
     encoder_hidden_states = prompt_embeds
 
     frames = []
+    first_frame = vae_processor(load_image(image))
+    first_frame = (first_frame / 2 + 0.5).clamp(0, 1)
+    first_frame = (first_frame.permute(1, 2, 0) * 255).to(torch.uint8).cpu().numpy()  
+    first_frame = first_frame.round().astype("uint8")  
+    frames.append(first_frame)
+    first_frame = Image.fromarray(first_frame)  
+    first_frame.save(f"samples/temp/first_frame.png")
 
     for index in range(num_frames):
 

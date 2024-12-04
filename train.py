@@ -135,7 +135,7 @@ def train(args, model, train_dataset, rank):
             if (train_idx+1) % int(args.save_interval*steps_per_epoch*args.grad_accumulation_steps) == 0:
                 if rank == 0:
                     trainable_state_dict = {
-                        name: param for name, param in model.module.unet.named_parameters()
+                        name: param for name, param in model.module.named_parameters()
                         if param.requires_grad
                     }
                     print("save an interval ckpt!")
@@ -143,7 +143,7 @@ def train(args, model, train_dataset, rank):
 
         if rank == 0:
             trainable_state_dict = {
-                name: param for name, param in model.module.unet.named_parameters()
+                name: param for name, param in model.module.named_parameters()
                 if param.requires_grad
             }
             print('epoch: ', epoch+1, ' train_loss: ', sum(iteration_loss_list)/len(iteration_loss_list))
@@ -186,12 +186,13 @@ def main_worker(args):
             dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=args.use_lora, lora_rank=args.lora_rank, use_3d=use_3d,
             n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = args.beta_schedule,)
         if use_3d and args.use_lora:
-            model.unet.load_state_dict(torch.load(args.lora_path, map_location='cpu'), strict=False)
+            model.load_state_dict(torch.load(args.lora_path, map_location='cpu'), strict=False)
     elif args.stage == 'expand':
         from models_expand.stable_diffusion_1_5 import SD_1_5
         model = SD_1_5(
             dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=False, lora_rank=args.lora_rank, use_3d=False,
             n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = args.beta_schedule, expand_conv_in=True)
+        # model.load_state_dict(torch.load('experiments/expand_epoch_1_iteration_85708.pth', map_location='cpu'), strict=False)
 
     model = torch.nn.parallel.DistributedDataParallel(model.cuda(rank), device_ids=[rank])
 
