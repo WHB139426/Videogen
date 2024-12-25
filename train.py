@@ -16,6 +16,7 @@ from mm_utils.optims import *
 # nohup bash scripts/finetune_image_lora.sh > finetune_image_lora.out 2>&1 &
 # nohup bash scripts/finetune_video_motion.sh > finetune_video_motion.out 2>&1 & 443084
 # nohup bash scripts/finetune_video_expand.sh > finetune_video_expand.out 2>&1 & 1018907
+# nohup bash scripts/finetune_video_expand_2.sh > finetune_video_expand_2.out 2>&1 & 
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -26,12 +27,12 @@ def parse_args():
     parser.add_argument('--grad_accumulation_steps', type=int, default=5) # overall: world_size*bs*grad_accumulation_steps = 64
     parser.add_argument('--epoch', type=int, default=10)
     parser.add_argument('--lr', type=float, default=3e-5) 
-    parser.add_argument('--save_interval', type=float, default=1/10, help='save per save_interval epoch')
+    parser.add_argument('--save_interval', type=float, default=1/4, help='save per save_interval epoch')
     parser.add_argument('--use_lora', action='store_true')
     parser.add_argument('--lora_path', type=str, default="experiments/image_epoch_5_lora.pth")
     parser.add_argument('--lora_rank', type=int, default=32)
 
-    parser.add_argument('--stage', type=str, default='video', choices=['image', 'video', 'expand'])
+    parser.add_argument('--stage', type=str, default='video', choices=['image', 'video', 'expand', 'expand_2'])
     parser.add_argument('--num_frames', type=int, default=16)
     parser.add_argument('--stride', type=int, default=-1)
     parser.add_argument('--img_size', type=int, default=256)
@@ -192,8 +193,12 @@ def main_worker(args):
         model = SD_1_5(
             dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=False, lora_rank=args.lora_rank, use_3d=False,
             n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = args.beta_schedule, expand_conv_in=True)
-        # model.load_state_dict(torch.load('experiments/expand_epoch_1_iteration_85708.pth', map_location='cpu'), strict=False)
-
+    elif args.stage == 'expand_2':
+        from models_expand_2.stable_diffusion_1_5 import SD_1_5
+        model = SD_1_5(
+            dtype=args.dtype, model_path="/home/haibo/weights/stable-diffusion-v1-5", img_size=args.img_size, use_lora=False, lora_rank=args.lora_rank, use_3d=False,
+            n_steps=args.n_steps, min_beta=args.min_beta, max_beta=args.max_beta, cfg_ratio=args.cfg_ratio, beta_schedule = args.beta_schedule, expand_conv_in=True)
+        
     model = torch.nn.parallel.DistributedDataParallel(model.cuda(rank), device_ids=[rank])
 
     if rank == 0:

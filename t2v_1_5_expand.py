@@ -67,7 +67,7 @@ guidance_scale = 7 # Scale for classifier-free guidance
 do_classifier_free_guidance = True
 device = "cuda:3"  
 dtype = torch.float32 if device=='cpu' else torch.bfloat16
-ckpt = 'experiments/expand_epoch_1_iteration_85708.pth'
+ckpt = 'experiments/expand_epoch_3_iteration_114280.pth'
 stage = 'expand'
 expand_conv_in = True
 
